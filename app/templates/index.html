@@ -1,0 +1,19 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block menu%}<div><a href="/chain" style="color: yellow; margin-left: 1050px;">Go To Blockchain</a></div>{% endblock %}
+
+{% block content %}
+  <div class="login-page">
+  <div class="form">
+    <form class="login-form" action="/submit" id="textform" method="post">
+      <input type="text" placeholder="Employee Name" name="emp_name"/>
+	  <input type="text" placeholder="Email" name="emp_email"/>
+	  <input type="text" placeholder="Phone Number" name="emp_phone"/>
+      <input type="text" placeholder="Project Name" name="project_name"/>
+	  <input type="text" placeholder="Client Name" name="client_name"/>
+      <button>Submit Transaction</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

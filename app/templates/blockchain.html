@@ -1,0 +1,23 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block menu%}<div><a href="/" style="color: yellow; margin-left: 1050px;">Go To Transaction</a></div>{% endblock %}
+
+{% block content %}
+	<a href="{{node_address}}/mine" target="_blank"><button>Add Transaction To Block</button></a>
+	<a href="/chain"><button>Add Block To Blockchain</button></a>
+
+	<div style="margin: 20px;">
+
+    {% for post in posts %}
+    <div class="post_box">
+	   <div class="post_box-header">
+		  <div class="post_box-options"><button class="option-btn"><b>Block #{{post.index}}, Created at <i>{{readable_time(post.timestamp)}}</i></b></button></div>
+	      <div><b>Employee : </b>{{post.emp_name}}</div>
+	      <div class="name-header"><b>Project : </b>{{post.project_name}}</div>
+		  <div><b>Client : </b>{{post.client_name}}</div>
+	   </div>
+	</div>
+	{% endfor %}
+    </div>
+{% endblock %}
