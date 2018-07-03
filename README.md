@@ -15,7 +15,7 @@ The application should be up and running at [http://localhost:8000].
 Run our application,
 
 ```sh
->>> python run_app.py
+>>> python manage.py runserver
 ```
 The application should be up and running at [http://localhost:5000].
 

@@ -2,6 +2,7 @@ import json, datetime, requests
 
 from app import app
 from flask import render_template, redirect, request
+from .models import User
 
 
 # The node with which our application interacts, there can be multiple
