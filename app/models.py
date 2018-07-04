@@ -5,6 +5,9 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
+    """
+     User Model
+    """
     __tablename__ = 'User'
 
     id = db.Column('id', db.Integer, primary_key = True)
@@ -23,6 +26,9 @@ class User(db.Model):
 
 
 class Employee(db.Model):
+    """
+     Employee Model
+    """
     __tablename__ = 'Employee'
     id = db.Column('emp_id', db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('User.id'),
@@ -31,6 +37,9 @@ class Employee(db.Model):
 
 
 class Client(db.Model):
+    """
+     Client Model
+    """
     __tablename__ = 'Client'
     id = db.Column('client_id', db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('User.id'),
@@ -39,6 +48,9 @@ class Client(db.Model):
 
 
 class Project(db.Model):
+    """
+     Project Model
+    """
     __tablename__ = 'Project'
     id = db.Column('project_id', db.Integer, primary_key=True)
     project_name = db.Column(db.String(100), nullable=False)
@@ -48,6 +60,9 @@ class Project(db.Model):
 
 
 class EmployeeProjectMap(db.Model):
+    """
+     EmployeeProjectMap Model
+    """
     __tablename__ = 'EmployeeProjectMap'
     id = db.Column('contract_id', db.Integer, primary_key=True)
     emp_id = db.Column('emp_id', db.Integer, db.ForeignKey('Employee.emp_id')),

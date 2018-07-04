@@ -12,7 +12,7 @@
     {% for post in posts %}
     <div class="post_box">
 	   <div class="post_box-header">
-		  <div class="post_box-options"><button class="option-btn"><b>Block #{{post.index}}, Created at <i>{{readable_time(post.timestamp)}}</i></b></button></div>
+		  <div class="post_box-options"><button class="option-btn"><b>Block #{{post.index}}, Created at <i>{{ post.timestamp }}</i></b></button></div>
 	      <div><b>Employee : </b>{{post.emp_name}}</div>
 	      <div class="name-header"><b>Project : </b>{{post.project_name}}</div>
 		  <div><b>Client : </b>{{post.client_name}}</div>

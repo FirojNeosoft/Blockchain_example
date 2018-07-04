@@ -29,7 +29,7 @@ def fetch_posts():
                 content.append(tx)
 
         global posts
-        posts = sorted(content, key=lambda k: k['timestamp'],
+        posts = sorted(content, key=lambda k: k['index'],
                        reverse=True)
 
 

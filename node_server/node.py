@@ -1,7 +1,68 @@
-import json, time, requests
-
+import json, time, requests, datetime
 from hashlib import sha256
+
+from flask_script import Server, Manager
 from flask import Flask, request
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate, MigrateCommand
+
+from config import DevelopmentConfig
+
+# application configured
+app = Flask(__name__)
+app.config.from_object(DevelopmentConfig())
+
+# database initialized
+db = SQLAlchemy()
+db.init_app(app)
+
+
+class BlockModel(db.Model):
+    """
+    Block Model
+    """
+    __tablename__ = 'Block'
+
+    id = db.Column('index', db.Integer, primary_key=True)
+    nonce = db.Column(db.Integer, nullable=False)
+    previous_hash = db.Column(db.String(256), nullable=False)
+    hash = db.Column(db.String(256), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now())
+
+    def __init__(self, nonce, previous_hash, hash):
+        self.nonce = nonce
+        self.previous_hash = previous_hash
+        self.hash = hash
+
+    def __repr__(self):
+        return str(self.id)
+
+
+class Transaction(db.Model):
+    """
+    Transaction Model
+    """
+    __tablename__ = 'Transaction'
+
+    id = db.Column('transaction_id', db.Integer, primary_key=True)
+    emp_name = db.Column(db.String(100), nullable=False)
+    emp_email = db.Column(db.String(100), unique=True, nullable=False)
+    emp_phone = db.Column(db.String(18), unique=True, nullable=False)
+    project_name = db.Column(db.String(100), nullable=False)
+    client_name = db.Column(db.String(100), nullable=False)
+    is_confirm = db.Column(db.Boolean, default=False)
+    block_id = db.Column(db.Integer, db.ForeignKey('Block.index'))
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now())
+
+    def __init__(self, emp_name, email, phone, project_name, client_name):
+        self.emp_name = emp_name
+        self.emp_email = email
+        self.emp_phone = phone
+        self.project_name = project_name
+        self.client_name = client_name
+
+    def __repr__(self):
+        return str(self.id)
 
 
 class Block:
@@ -127,14 +188,19 @@ class Blockchain:
 
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
-
+        b = BlockModel(new_block.nonce, new_block.previous_hash, proof)
+        db.session.add(b)
+        db.session.commit()
+        unconfirmed_transactions = Transaction.query.filter_by(is_confirm= False).all()
+        for t in unconfirmed_transactions:
+            t.is_confirm = True
+            t.block_id = b.id
+            db.session.add(t)
+        db.session.commit()
         self.unconfirmed_transactions = []
         # announce it to the network
         announce_new_block(new_block)
         return new_block.index
-
-
-app = Flask(__name__)
 
 # the node's copy of blockchain
 blockchain = Blockchain()
@@ -155,7 +221,9 @@ def new_transaction():
             return "Invlaid transaction data", 404
 
     tx_data["timestamp"] = time.time()
-
+    t = Transaction(tx_data["emp_name"], tx_data["emp_email"], tx_data["emp_phone"], tx_data["project_name"], tx_data["client_name"])
+    db.session.add(t)
+    db.session.commit()
     blockchain.add_new_transaction(tx_data)
 
     return "Success", 201
@@ -169,8 +237,29 @@ def get_chain():
     # make sure we've the longest chain
     consensus()
     chain_data = []
-    for block in blockchain.chain:
-        chain_data.append(block.__dict__)
+    # for block in blockchain.chain:
+    #     chain_data.append(block.__dict__)
+    blocks = BlockModel.query.all()
+    for block in blocks:
+        trans_list=[]
+        block_trans = Transaction.query.filter_by(block_id= block.id).all()
+        for t in block_trans:
+            trans_list.append({
+                  "emp_name": t.emp_name,
+                  "emp_email": t.emp_email,
+                  "emp_phone": t.emp_phone,
+                  "project_name": t.project_name,
+                  "client_name": t.client_name,
+                  "timestamp": t.created_at.strftime('%Y-%m-%d %H:%M')
+              })
+        chain_data.append({
+               "index": block.id,
+               "transactions": trans_list,
+               "timestamp":  block.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+               "previous_hash": block.previous_hash,
+               "nonce": block.nonce,
+               "hash": block.hash
+          })
     return json.dumps({"length": len(chain_data),
                        "chain": chain_data})
 
@@ -260,4 +349,13 @@ def announce_new_block(block):
         requests.post(url, data=json.dumps(block.__dict__, sort_keys=True))
 
 
-app.run(debug=True, port=8000)
+migrate = Migrate(app, db)
+manager = Manager(app)
+
+manager.add_command('db', MigrateCommand)
+manager.add_command("runserver", Server(host="0.0.0.0", port=8000))
+
+
+if __name__ == '__main__':
+    # export DATABASE_URL='postgresql://postgres:postgres@localhost:5432/ProjectTracker'
+    manager.run()
