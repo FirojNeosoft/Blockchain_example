@@ -7,7 +7,7 @@ This application store an information related an employee and his project into b
 
 Start a blockchain node server,
 ```sh
->>> python node_server.py
+>>> python node.py runserver
 ```
 The application should be up and running at [http://localhost:8000].
 
