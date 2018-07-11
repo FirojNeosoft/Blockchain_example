@@ -84,17 +84,17 @@ contract CrowdFunder {
             raiseBy);
     }
 
-    function contribute() public payable returns (uint256)
+    function contribute(address sender, uint value) public payable returns (uint256)
     {
         contributions.push(
             Contribution({
-                amount: msg.value,
-                contributor: msg.sender
+                amount: value,
+                contributor: sender
                 }) // use array, so can iterate
             );
-        totalRaised += msg.value;
+        totalRaised += value;
         currentBalance = totalRaised;
-        emit LogFundingReceived(msg.sender, msg.value, totalRaised);
+        emit LogFundingReceived(sender, value, totalRaised);
 
         checkIfFundingCompleteOrExpired();
         return contributions.length - 1; // return id
@@ -104,6 +104,10 @@ contract CrowdFunder {
         return creator;
     }
     
+    function getExpiry() view public returns (uint) {
+        return raiseBy;
+    }
+
     function getTarget() view public returns (uint) {
         return minimumToRaise;
     }
@@ -150,25 +154,32 @@ contract CrowdFunder {
             emit LogWinnerPaid(fundRecipient);
         }
 
-        function getRefund(uint256 id) public inState(State.ExpiredRefund) returns (bool)
+        function getRefund(address u) public inState(State.ExpiredRefund) returns (bool)
         {
             // if (contributions.length <= id || id < 0 || contributions[id].amount == 0 ) {
             //     throw;
             // }
+            uint index;
+            for (uint i = 0; i < contributions.length; i++) {
+                if (contributions[i].contributor == u) {
+                    index=i;
+                }
+             }
 
-            uint amountToRefund = contributions[id].amount;
-            contributions[id].amount = 0;
+            uint amountToRefund = contributions[index].amount;
+            contributions[index].amount = 0;
 
-            if(!contributions[id].contributor.send(amountToRefund)) {
-                contributions[id].amount = amountToRefund;
-                return false;
-            }
-            else{
+            // if(!u.send(amountToRefund)) {
+            //     contributions[index].amount = amountToRefund;
+            //     return false;
+            // }
+            // else{
                 totalRaised -= amountToRefund;
                 currentBalance = totalRaised;
-            }
+            // }
 
             return true;
+
         }
 
         function removeContract() public isCreator() atEndOfLifecycle()
